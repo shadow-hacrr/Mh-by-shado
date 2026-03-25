@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ur">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ramzan Ultra Premium Calendar</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
+body{
+  background: url('background.png') no-repeat center center fixed;
+  background-size: cover;
+  text-align:center;
+  color:white;
+  min-height:100vh;
+  padding-top:100px;
+}
+header h1{font-size:36px;color:#ffd700;margin-bottom:10px;}
+select{padding:10px 20px;border-radius:25px;border:none;font-weight:bold;margin-bottom:30px;}
+.container{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:25px;
+  padding:20px;
+}
+.card{
+  background: rgba(255,255,255,0.05);
+  border-radius:25px;
+  padding:25px;
+  transition:0.5s;
+  border:1px solid rgba(255,215,0,0.3);
+}
+.card:hover{
+  transform:scale(1.05);
+  box-shadow:0 0 30px #ffd700;
+}
+.day{font-size:22px;color:#ffd700;margin-bottom:10px;}
+.time{margin:5px 0;font-size:16px;animation:fadeIn 1s;}
+.dua,.hadith{margin-top:10px;font-size:14px;opacity:0.9;line-height:1.6;}
+footer{margin-top:40px;padding:20px;background:rgba(0,0,0,0.3);border-radius:15px;}
+@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+.btn{
+margin-top:20px;
+padding:12px 28px;
+border:none;
+border-radius:30px;
+background:linear-gradient(45deg,#ffd700,#ff9800);
+color:black;
+font-weight:bold;
+cursor:pointer;
+transition:0.4s;
+}
+.btn:hover{
+transform:scale(1.08);
+box-shadow:0 0 20px #ffd700;
+}
+</style>
+</head>
+<body>
+
+<header>
+<h1>🌙 Ramadan Ultra Calendar 2026</h1>
+<select id="citySelect" onchange="updateCity()">
+  <option value="Sangla Hill">Sangla Hill</option>
+  <option value="Lahore">Lahore</option>
+  <option value="Karachi">Karachi</option>
+  <option value="Islamabad">Islamabad</option>
+  <option value="Faisalabad">Faisalabad</option>
+</select>
+<br>
+<button class="btn" onclick="downloadPDF()">Download PDF</button>
+</header>
+
+<div id="container" class="container"></div>
+
+<footer>
+🤲 سحری: وَبِصَوْمِ غَدٍ نَّوَيْتُ مِنْ شَهْرِ رَمَضَانَ | افطار: اللّهُمَّ إِنِّي لَكَ صُمْتُ وَبِكَ آمَنْتُ
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+const cities={
+"Sangla Hill":{sehri:[5,12],iftar:[18,7]},
+"Lahore":{sehri:[5,15],iftar:[18,10]},
+"Karachi":{sehri:[5,30],iftar:[18,25]},
+"Islamabad":{sehri:[5,5],iftar:[18,0]},
+"Faisalabad":{sehri:[5,10],iftar:[18,5]}
+};
+
+const hadiths=[
+"جس نے رمضان کے روزے رکھے اس کے گناہ معاف ہو گئے۔",
+"روزہ ڈھال ہے۔",
+"روزہ صبر سکھاتا ہے اور گناہوں سے بچاتا ہے۔",
+"روزہ انسان کو تقویٰ دیتا ہے۔",
+"روزہ دل کو پاک کرتا ہے۔"
+];
+
+const duas=[
+"وَبِصَوْمِ غَدٍ نَّوَيْتُ مِنْ شَهْرِ رَمَضَانَ",
+"اللّهُمَّ إِنِّي لَكَ صُمْتُ وَبِكَ آمَنْتُ",
+"اللّهُمَّ اجعلنا صائمين متقبّلين"
+];
+
+let currentCity="Sangla Hill";
+
+function updateCity(){
+currentCity=document.getElementById('citySelect').value;
+generateCalendar();
+}
+
+function generateCalendar(){
+const container=document.getElementById('container');
+container.innerHTML="";
+for(let i=0;i<30;i++){
+const sehri=cities[currentCity].sehri;
+const iftar=cities[currentCity].iftar;
+container.innerHTML+=`
+<div class="card">
+  <div class="day">🌙 Day ${i+1} Ramadan</div>
+  <div class="time">Sehri: ${sehri[0]}:${sehri[1].toString().padStart(2,'0')} AM</div>
+  <div class="time">Iftar: ${iftar[0]-12}:${iftar[1].toString().padStart(2,'0')} PM</div>
+  <div class="dua">${duas[i%duas.length]}</div>
+  <div class="hadith">${hadiths[i%hadiths.length]}</div>
+</div>`;}
+}
+
+// PDF Download Function
+function downloadPDF(){
+const { jsPDF }=window.jspdf;
+const doc=new jsPDF();
+doc.setFontSize(16);
+doc.text("Ramzan Ultra Calendar 2026",20,20);
+let y=30;
+for(let i=0;i<30;i++){
+const sehri=cities[currentCity].sehri;
+const iftar=cities[currentCity].iftar;
+doc.text(`${i+1} Ramadan - Sehri: ${sehri[0]}:${sehri[1].toString().padStart(2,'0')} AM - Iftar: ${iftar[0]-12}:${iftar[1].toString().padStart(2,'0')} PM`,20,y);
+y+=8;
+}
+doc.save(`Ramzan_${currentCity}_2026.pdf`);
+}
+
+generateCalendar();
+</script>
+
+</body>
+</html>
