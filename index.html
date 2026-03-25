@@ -1,147 +1,443 @@
 <!DOCTYPE html>
-<html lang="ur">
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ramzan Ultra Premium Calendar</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
-<style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins',sans-serif;}
-body{
-  background: url('background.png') no-repeat center center fixed;
-  background-size: cover;
-  text-align:center;
-  color:white;
-  min-height:100vh;
-  padding-top:100px;
-}
-header h1{font-size:36px;color:#ffd700;margin-bottom:10px;}
-select{padding:10px 20px;border-radius:25px;border:none;font-weight:bold;margin-bottom:30px;}
-.container{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
-  gap:25px;
-  padding:20px;
-}
-.card{
-  background: rgba(255,255,255,0.05);
-  border-radius:25px;
-  padding:25px;
-  transition:0.5s;
-  border:1px solid rgba(255,215,0,0.3);
-}
-.card:hover{
-  transform:scale(1.05);
-  box-shadow:0 0 30px #ffd700;
-}
-.day{font-size:22px;color:#ffd700;margin-bottom:10px;}
-.time{margin:5px 0;font-size:16px;animation:fadeIn 1s;}
-.dua,.hadith{margin-top:10px;font-size:14px;opacity:0.9;line-height:1.6;}
-footer{margin-top:40px;padding:20px;background:rgba(0,0,0,0.3);border-radius:15px;}
-@keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
-.btn{
-margin-top:20px;
-padding:12px 28px;
-border:none;
-border-radius:30px;
-background:linear-gradient(45deg,#ffd700,#ff9800);
-color:black;
-font-weight:bold;
-cursor:pointer;
-transition:0.4s;
-}
-.btn:hover{
-transform:scale(1.08);
-box-shadow:0 0 20px #ffd700;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Location Tracker</title>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 400px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            box-shadow: 2px 0 20px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+
+        .main-map {
+            flex: 1;
+            position: relative;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .status {
+            background: #10b981;
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .status.error {
+            background: #ef4444;
+        }
+
+        .location-info {
+            background: #f8fafc;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .info-value {
+            color: #1f2937;
+            font-family: monospace;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-start {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-start:hover {
+            background: #059669;
+            transform: translateY(-2px);
+        }
+
+        .btn-stop {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-stop:hover {
+            background: #dc2626;
+            transform: translateY(-2px);
+        }
+
+        .tracks-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .track-item {
+            background: white;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            border: 2px solid #e5e7eb;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .track-item:hover {
+            border-color: #3b82f6;
+            transform: translateX(5px);
+        }
+
+        .track-item.active {
+            border-color: #10b981;
+            background: #d1fae5;
+        }
+
+        .track-time {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 5px;
+        }
+
+        #map {
+            height: 100%;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .share-link {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            word-break: break-all;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: 50vh;
+            }
+            
+            .main-map {
+                height: 50vh;
+            }
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <div class="sidebar">
+            <div class="header">
+                <h1>📍 Live Tracker</h1>
+                <p>Real-time location sharing</p>
+            </div>
 
-<header>
-<h1>🌙 Ramadan Ultra Calendar 2026</h1>
-<select id="citySelect" onchange="updateCity()">
-  <option value="Sangla Hill">Sangla Hill</option>
-  <option value="Lahore">Lahore</option>
-  <option value="Karachi">Karachi</option>
-  <option value="Islamabad">Islamabad</option>
-  <option value="Faisalabad">Faisalabad</option>
-</select>
-<br>
-<button class="btn" onclick="downloadPDF()">Download PDF</button>
-</header>
+            <div id="status" class="status" style="display: none;">
+                Tracking Active
+            </div>
 
-<div id="container" class="container"></div>
+            <div class="location-info" id="locationInfo" style="display: none;">
+                <div class="info-row">
+                    <span class="info-label">Latitude:</span>
+                    <span class="info-value" id="lat">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Longitude:</span>
+                    <span class="info-value" id="lng">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Accuracy:</span>
+                    <span class="info-value" id="accuracy">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Speed:</span>
+                    <span class="info-value" id="speed">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Altitude:</span>
+                    <span class="info-value" id="altitude">-</span>
+                </div>
+            </div>
 
-<footer>
-🤲 سحری: وَبِصَوْمِ غَدٍ نَّوَيْتُ مِنْ شَهْرِ رَمَضَانَ | افطار: اللّهُمَّ إِنِّي لَكَ صُمْتُ وَبِكَ آمَنْتُ
-</footer>
+            <div class="controls">
+                <button id="startBtn" class="btn-start">Start Tracking</button>
+                <button id="stopBtn" class="btn-stop" style="display: none;">Stop Tracking</button>
+            </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script>
-const cities={
-"Sangla Hill":{sehri:[5,12],iftar:[18,7]},
-"Lahore":{sehri:[5,15],iftar:[18,10]},
-"Karachi":{sehri:[5,30],iftar:[18,25]},
-"Islamabad":{sehri:[5,5],iftar:[18,0]},
-"Faisalabad":{sehri:[5,10],iftar:[18,5]}
-};
+            <div class="share-link" id="shareLink" style="display: none;">
+                <strong>Share this link:</strong><br>
+                <input type="text" id="shareUrl" readonly style="width: 100%; padding: 10px; margin-top: 10px; border: 1px solid #d1d5db; border-radius: 5px;">
+            </div>
 
-const hadiths=[
-"جس نے رمضان کے روزے رکھے اس کے گناہ معاف ہو گئے۔",
-"روزہ ڈھال ہے۔",
-"روزہ صبر سکھاتا ہے اور گناہوں سے بچاتا ہے۔",
-"روزہ انسان کو تقویٰ دیتا ہے۔",
-"روزہ دل کو پاک کرتا ہے۔"
-];
+            <div class="tracks-list" id="tracksList">
+                <h3 style="margin-bottom: 15px; color: #374151;">📋 Location History</h3>
+            </div>
+        </div>
 
-const duas=[
-"وَبِصَوْمِ غَدٍ نَّوَيْتُ مِنْ شَهْرِ رَمَضَانَ",
-"اللّهُمَّ إِنِّي لَكَ صُمْتُ وَبِكَ آمَنْتُ",
-"اللّهُمَّ اجعلنا صائمين متقبّلين"
-];
+        <div class="main-map">
+            <div id="map"></div>
+        </div>
+    </div>
 
-let currentCity="Sangla Hill";
+    <script>
+        class LocationTracker {
+            constructor() {
+                this.map = null;
+                this.currentMarker = null;
+                this.trackLayer = null;
+                this.isTracking = false;
+                this.watchId = null;
+                this.tracks = [];
+                this.currentTrackId = null;
+                this.userId = 'user_' + Math.random().toString(36).substr(2, 9);
+                
+                this.initMap();
+                this.bindEvents();
+            }
 
-function updateCity(){
-currentCity=document.getElementById('citySelect').value;
-generateCalendar();
-}
+            initMap() {
+                this.map = L.map('map').setView([0, 0], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(this.map);
 
-function generateCalendar(){
-const container=document.getElementById('container');
-container.innerHTML="";
-for(let i=0;i<30;i++){
-const sehri=cities[currentCity].sehri;
-const iftar=cities[currentCity].iftar;
-container.innerHTML+=`
-<div class="card">
-  <div class="day">🌙 Day ${i+1} Ramadan</div>
-  <div class="time">Sehri: ${sehri[0]}:${sehri[1].toString().padStart(2,'0')} AM</div>
-  <div class="time">Iftar: ${iftar[0]-12}:${iftar[1].toString().padStart(2,'0')} PM</div>
-  <div class="dua">${duas[i%duas.length]}</div>
-  <div class="hadith">${hadiths[i%hadiths.length]}</div>
-</div>`;}
-}
+                // Default marker
+                this.currentMarker = L.marker([0, 0], {
+                    icon: L.divIcon({
+                        className: 'custom-marker',
+                        html: '<div style="background: #10b981; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.3);"></div>',
+                        iconSize: [26, 26],
+                        iconAnchor: [13, 13]
+                    })
+                }).addTo(this.map);
+            }
 
-// PDF Download Function
-function downloadPDF(){
-const { jsPDF }=window.jspdf;
-const doc=new jsPDF();
-doc.setFontSize(16);
-doc.text("Ramzan Ultra Calendar 2026",20,20);
-let y=30;
-for(let i=0;i<30;i++){
-const sehri=cities[currentCity].sehri;
-const iftar=cities[currentCity].iftar;
-doc.text(`${i+1} Ramadan - Sehri: ${sehri[0]}:${sehri[1].toString().padStart(2,'0')} AM - Iftar: ${iftar[0]-12}:${iftar[1].toString().padStart(2,'0')} PM`,20,y);
-y+=8;
-}
-doc.save(`Ramzan_${currentCity}_2026.pdf`);
-}
+            bindEvents() {
+                document.getElementById('startBtn').addEventListener('click', () => this.startTracking());
+                document.getElementById('stopBtn').addEventListener('click', () => this.stopTracking());
+            }
 
-generateCalendar();
-</script>
+            async startTracking() {
+                if (!navigator.geolocation) {
+                    this.showError('Geolocation is not supported by this browser.');
+                    return;
+                }
 
+                try {
+                    this.isTracking = true;
+                    document.getElementById('startBtn').style.display = 'none';
+                    document.getElementById('stopBtn').style.display = 'block';
+                    document.getElementById('status').style.display = 'block';
+                    document.getElementById('status').textContent = 'Tracking Active';
+                    document.getElementById('status').className = 'status';
+
+                    this.watchId = navigator.geolocation.watchPosition(
+                        (position) => this.onLocationUpdate(position),
+                        (error) => this.onLocationError(error),
+                        {
+                            enableHighAccuracy: true,
+                            timeout: 5000,
+                            maximumAge: 0
+                        }
+                    );
+
+                    // Generate shareable URL
+                    const shareUrl = `${window.location.href}?track=${this.userId}`;
+                    document.getElementById('shareUrl').value = shareUrl;
+                    document.getElementById('shareLink').style.display = 'block';
+
+                } catch (error) {
+                    this.showError('Failed to start tracking: ' + error.message);
+                }
+            }
+
+            stopTracking() {
+                if (this.watchId) {
+                    navigator.geolocation.clearWatch(this.watchId);
+                    this.watchId = null;
+                }
+                this.isTracking = false;
+                document.getElementById('startBtn').style.display = 'block';
+                document.getElementById('stopBtn').style.display = 'none';
+                document.getElementById('status').style.display = 'none';
+                document.getElementById('locationInfo').style.display = 'none';
+                document.getElementById('shareLink').style.display = 'none';
+            }
+
+            onLocationUpdate(position) {
+                const { latitude, longitude, accuracy, speed, altitude } = position.coords;
+                
+                // Update map
+                this.map.setView([latitude, longitude], 16);
+                this.currentMarker.setLatLng([latitude, longitude]);
+
+                // Add to track
+                this.addTrackPoint(latitude, longitude, accuracy, speed, altitude, position.timestamp);
+
+                // Update info panel
+                document.getElementById('lat').textContent = latitude.toFixed(6);
+                document.getElementById('lng').textContent = longitude.toFixed(6);
+                document.getElementById('accuracy').textContent = accuracy.toFixed(0) + 'm';
+                document.getElementById('speed').textContent = speed ? (speed * 3.6).toFixed(1) + ' km/h' : 'N/A';
+                document.getElementById('altitude').textContent = altitude ? altitude.toFixed(0) + 'm' : 'N/A';
+                
+                document.getElementById('locationInfo').style.display = 'block';
+
+                // Update status with timestamp
+                const now = new Date();
+                document.getElementById('status').textContent = `Live: ${now.toLocaleTimeString()}`;
+            }
+
+            addTrackPoint(lat, lng, accuracy, speed, altitude, timestamp) {
+                const trackId = this.currentTrackId || Date.now().toString();
+                this.currentTrackId = trackId;
+
+                this.tracks.push({
+                    id: trackId,
+                    lat,
+                    lng,
+                    accuracy,
+                    speed,
+                    altitude,
+                    timestamp,
+                    time: new Date(timestamp).toLocaleString()
+                });
+
+                // Update track layer
+                if (!this.trackLayer) {
+                    this.trackLayer = L.layerGroup().addTo(this.map);
+                }
+
+                const marker = L.circleMarker([lat, lng], {
+                    radius: 6,
+                    fillColor: '#3b82f6',
+                    color: '#1e40af',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                }).addTo(this.trackLayer);
+
+                // Update tracks list
+                this.updateTracksList();
+            }
+
+            updateTracksList() {
+                const container = document.getElementById('tracksList');
+                const tracksHtml = this.tracks.slice(-10).map(track => `
+                    <div class="track-item ${track.id === this.currentTrackId ? 'active' : ''}" onclick="tracker.flyTo(${track.lat}, ${track.lng})">
+                        <div>${track.lat.toFixed(4)}, ${track.lng.toFixed(4)}</div>
+                        <div class="track-time">${track.time}</div>
+                    </div>
+                `).join('');
+
+                container.innerHTML = `
+                    <h3 style="margin-bottom: 15px; color: #374151;">📋 Location History (${this.tracks.length})</h3>
+                    ${tracksHtml || '<p>No locations yet</p>'}
+                `;
+            }
+
+            flyTo(lat, lng) {
+                this.map.flyTo([lat, lng], 16);
+            }
+
+            onLocationError(error) {
+                let message = 'Location error: ';
+                switch(error.code) {
+                    case error.PERMISSION_DENIED:
+                        message += "User denied the request for Geolocation.";
+                        break;
+                    case error.POSITION_UNAVAILABLE:
+                        message += "Location information is unavailable.";
+                        break;
+                    case error.TIMEOUT:
+                        message += "The request to get user location timed out.";
+                        break;
+                }
+                this.showError(message);
+            }
+
+            showError(message) {
+                document.getElementById('status').textContent = message;
+                document.getElementById('status').className = 'status error';
+                document.getElementById('status').style.display = 'block';
+            }
+        }
+
+        // Initialize tracker
+        const tracker = new LocationTracker();
+
+        // Handle share links
+        const urlParams = new URLSearchParams(window.location.search);
+        const trackId = urlParams.get('track');
+        if (trackId) {
+            console.log('Tracking session:', trackId);
+        }
+    </script>
 </body>
 </html>
